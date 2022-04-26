@@ -1,0 +1,66 @@
+﻿@page "/gestionar/{ListaId:int}"
+
+<h1>Gestionando cliente... "@_clienteToUpdate.Name" </h1>
+
+<EditForm Model="_clienteToUpdate" OnValidSubmit="UpdateClienteAsync">
+
+
+    <div class="btn-group mb-3">
+        <label for="clienteNombre">Nombre</label>
+        <inputText @bind-Value="_clienteToUpdate.Name" class="form-control" id="clienteNombre"></inputText>
+
+    </div>
+
+    <div class="btn-group mb-3">
+        <label for="clienteApellido">Apellido</label>
+        <inputText @bind-Value="_clienteToUpdate.LastName" class="form-control" id="clienteApellido"></inputText>
+
+    </div>
+
+    <DataAnnotationsValidator></DataAnnotationsValidator>
+    <ValidateSummary></ValidateSummary>
+
+    <button class="btn btn-success" type="submit">GESTIONAR CLIENTE</button>
+
+    <button @onclick="@(() => NavigationManager.NavigateTo("/"))" class="btn btn-secondary">CANCELAR</button>
+
+
+</EditForm>
+
+@inject IJSRuntime JsRuntime 
+@inject NavigationManager NavigationManager
+
+
+
+@code {
+    [Parameter] public int ListaId { get; set; }
+    private GymApp.Data.Lista _clienteToUpdate = null;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        using var context = new GymApp.Data.GymDbContext();
+        _clienteToUpdate = await context.clientes.FindAsync(ListaId);
+
+    }
+
+    //METODO PARA ACTUALIZAR NUESTRO CLIENTE
+    private async Task UpdateClienteAsync()
+    {
+        using var context = new GymApp.Data.GymDbContext();
+        context.clientes.Update(_clienteToUpdate);
+
+        if (await context.SaveChangesAsync() > 0)
+        {
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            string errorMessage = "ERROR: FALLO AL INTENTAR EDITAR AL CLIENTE";
+            await JsRuntime.InvokeVoidAsync("alert", errorMessage);
+
+        }
+
+    }
+
+
+}

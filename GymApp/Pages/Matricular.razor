@@ -1,0 +1,65 @@
+﻿@page "/matricular"
+@inject IJSRuntime JsRuntime
+@inject NavigationManager NavigationManager
+
+<h1>Matriculando cliente "@_clienteToCreate.Name" </h1>
+
+<EditForm Model="_clienteToCreate" OnValidSubmit="CreateClienteAsync">
+
+
+    <div class="btn-group mb-3">
+        <label for="clienteNombre">Nombre</label>
+        <inputText @bind-Value="_clienteToCreate.Name" class="form-control" id="clienteNombre"></inputText>
+
+    </div>
+
+    <div class="btn-group mb-3">
+        <label for="clienteApellido">Apellido</label>
+        <inputText @bind-Value="_clienteToCreate.LastName" class="form-control" id="clienteApellido"></inputText>
+
+    </div>
+
+    <DataAnnotationsValidator></DataAnnotationsValidator>
+    <ValidateSummary></ValidateSummary>
+
+    <button class="btn btn-success" type="submit">MATRICULAR CLIENTE</button>
+
+    <button @onclick="@(() => NavigationManager.NavigateTo("/"))" class="btn btn-secondary">CANCELAR</button>
+
+
+</EditForm>
+
+
+
+
+
+
+
+@code {
+    private GymApp.Data.Lista _clienteToCreate = new GymApp.Data.Lista
+        {
+            Name = "Nombre del cliente",
+            LastName = "Apellido del cliente"
+
+        };
+
+    private async Task CreateClienteAsync()
+    {
+        using var context = new GymApp.Data.GymDbContext();
+        await context.clientes.AddAsync(_clienteToCreate);
+
+        if (await context.SaveChangesAsync() > 0)
+        {
+            NavigationManager.NavigateTo("/");
+        }
+        else
+        {
+            string errorMessage = "ERROR: FALLO AL INTENTAR MATRICULAR AL CLIENTE";
+            await JsRuntime.InvokeVoidAsync("alert", errorMessage);
+
+        }
+
+    }
+
+
+}

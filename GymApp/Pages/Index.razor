@@ -1,0 +1,81 @@
+﻿@page "/"
+@inject IJSRuntime JsRuntime
+@inject NavigationManager NavigationManager
+
+<PageTitle>Home</PageTitle>
+
+<h1>Lista de clientes matriculados en GymApp</h1>
+
+
+
+<a href="/matricular" class="btn btn-success btn-lg w-100 my-4">+ Matricular Nuevo Cliente</a>
+
+
+
+<table class="table table-responsive table-striped">
+    <thead>
+        <tr>
+            <th scope="col">Id Cliente</th>
+            <th scope="col">Nombre Cliente</th>
+            <th scope="col">Apellido Cliente</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @if (_listas != null)
+        {
+            //POR CADA CLIENTE EN NUESTRA TABLA DE CLIENTES, VA A MOSTRAR SU NOMBRE Y SU APELLIDO
+            foreach (var cliente in _listas)
+            {
+                <tr>
+                    <th scope="row">@cliente.Id</th>
+                    <td>@cliente.Name</td>
+                    <td>@cliente.LastName</td>
+                    <td>
+                        <a href="/gestionar/@cliente.Id" class="btn btn-warning btn-lg w-100 my-2">Editar</a>
+                        <button @onclick="() => DeleteClientAsync(cliente)" class="btn btn-danger btn-lg w-100 my-2">Eliminar</button> 
+
+                    </td>
+
+                </tr>
+            }
+        }
+
+    </tbody>
+
+</table>
+
+
+@code {
+
+    private List<Lista> _listas = null;
+
+    //ACCEDE A NUESTRA LISTA DE CLIENTES EN LA BD
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = new GymDbContext();
+
+        _listas = await context.clientes.ToListAsync();
+
+    }
+
+    //ELIMINAR CLIENTE METODO
+    private async Task DeleteClientAsync(Lista clienteToDelete)
+    {
+        using var context = new GymDbContext();
+        context.clientes.Remove(clienteToDelete);
+
+        if (await context.SaveChangesAsync() > 0)
+        {
+            _listas.Remove(clienteToDelete);
+        }
+        else
+        {
+            string errorMessage = $"ERROR: FALLO AL INTENTAR ELIMINAR AL CLIENTE \"{clienteToDelete.Name}\"";
+            await JsRuntime.InvokeVoidAsync("alert", errorMessage);
+
+        }
+
+    }
+
+}
